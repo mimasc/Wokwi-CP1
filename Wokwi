@@ -1,0 +1,74 @@
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <Arduino.h>
+
+bool mqttStatus = 0;
+
+const char* ssid = "Wokwi-GUEST"; // REDE WIFi
+const char* password = ""; // SENHA WIFi
+
+// MQTT Broker
+const char *mqtt_broker = "broker.hivemq.com";//Host do broket
+const char* topic[] = {
+  "topico01",
+  "topico02",
+  "topico03"
+};//Topico a ser subscrito e publicado
+const char *mqtt_username = "";            //Usuario (se houver)
+const char *mqtt_password = "";            //Senha (se houver)
+const int mqtt_port = 1883;                //Porta
+int totalTopicos = sizeof(topic) / sizeof(topic[0]);
+
+String mensagem;
+
+//Objetos
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+//Prototipos
+bool connectMQTT();
+void callback(char *topic, byte * payload, unsigned int length);
+
+void setup(void){
+  Serial.begin(9600);
+
+  // Conectar
+  WiFi.begin(ssid, password);
+
+  //Aguardando conexão
+  Serial.println();
+  Serial.print("Conectando");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+
+  //Envia IP através da UART
+  Serial.println(WiFi.localIP());
+
+  mqttStatus =  connectMQTT();
+}
+
+void loop() {
+ static long long pooling  = 0;
+  if (mqttStatus){
+    
+    client.loop();    
+
+    if (millis() > pooling +1000){
+      pooling = millis();
+      
+
+      
+    //Inclua aqui a sua lógica
+
+      String msg = mensagem; //recebe uma mensagem
+      client.publish(topic[0], msg.c_str()); //envia uma mensagem
+
+
+
+    }   
+  }
+}
